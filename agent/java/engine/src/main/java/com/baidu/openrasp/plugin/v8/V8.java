@@ -65,7 +65,7 @@ public class V8 {
     public static native String Check(String type, byte[] params, int params_size, Context context,
             boolean new_request);
 
-    public static native String ExecuteScript(String source, String filename) throws Exception;
+    public static native String ExecuteScript(String source, String filename);
 
     public static void PluginLog(String log) {
         PLUGIN_LOGGER.info(log.replaceAll("\n$", ""));
@@ -153,15 +153,9 @@ public class V8 {
     public synchronized static boolean UpdatePlugin(List<String[]> scripts) {
         boolean rst = CreateSnapshot("{}", scripts.toArray());
         if (rst) {
-            try {
-                String jsonString = ExecuteScript("JSON.stringify(RASP.algorithmConfig || {})", "get-algorithm-config.js");
-                jsonString = new JsonParser().parse(jsonString).getAsString();
-                Config.getConfig().setConfig("algorithm.config", jsonString, true);
-            } catch (Exception e) {
-                String message = e.getMessage();
-                int errorCode = ErrorType.PLUGIN_ERROR.getCode();
-                LOGGER.error(CloudUtils.getExceptionObject(message, errorCode), e);
-            }
+            String jsonString = ExecuteScript("JSON.stringify(RASP.algorithmConfig || {})", "get-algorithm-config.js");
+            jsonString = new JsonParser().parse(jsonString).getAsString();
+            Config.getConfig().setConfig("algorithm.config", jsonString, true);
             Config.commonLRUCache.clear();
         }
         return rst;
